@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>EBS Car Wash · Responsif All Device</title>
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- SheetJS -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(145deg, #2b1b3a 0%, #1d2f4a 100%); display: flex; justify-content: center; min-height: 100vh; padding: 8px; }
+        .app { max-width: 1500px; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-radius: 32px 32px 24px 24px; box-shadow: 0 30px 60px rgba(0, 10, 30, 0.6); overflow: hidden; display: flex; flex-direction: column; border: 2px solid #ffd966; }
+        
+        /* header responsive */
+        .header { background: linear-gradient(135deg, #4a1d5c 0%, #2c4a6e 100%); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 4px solid #f9cf5c; flex-wrap: wrap; gap: 12px; }
+        .header h1 { font-weight: 700; font-size: clamp(1.4rem, 5vw, 2.2rem); letter-spacing: -0.5px; text-shadow: 3px 3px 0 #31203b; display: flex; align-items: center; }
+        .header h1 i { color: #ffdb7e; margin-right: 10px; font-size: clamp(1.2rem, 4vw, 2rem); }
+        .user-switch { background: #281c34; padding: 4px 10px; border-radius: 50px; display: flex; gap: 5px; border: 2px solid #f5b34b; flex-wrap: wrap; }
+        .user-switch button { background: transparent; border: none; color: #c2b0d9; font-weight: 600; padding: 6px 16px; border-radius: 50px; cursor: pointer; transition: 0.2s; font-size: clamp(0.8rem, 3vw, 1rem); white-space: nowrap; }
+        .user-switch button.active { background: #f3b33d; color: #1e1a2b; box-shadow: 0 0 0 3px #ffe5a3; font-weight: 700; }
+        
+        /* navbar tab responsive */
+        .tab-nav { display: flex; flex-wrap: wrap; background: #fdf3e0; padding: 8px 12px 0 12px; gap: 4px; border-bottom: 4px solid #f5a97b; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; justify-content: flex-start; }
+        .tab-nav::-webkit-scrollbar { height: 5px; background: #ffe0b9; }
+        .tab-nav::-webkit-scrollbar-thumb { background: #c2874a; border-radius: 20px; }
+        .tab { padding: 10px 16px; font-weight: 600; color: #2b4054; border-radius: 30px 30px 0 0; cursor: pointer; transition: 0.2s; background: #ffe6c3; border: none; font-size: clamp(0.8rem, 2.5vw, 0.95rem); margin-right: 2px; box-shadow: 0 -2px 5px rgba(0,0,0,0.02); white-space: nowrap; }
+        .tab i { margin-right: 6px; font-size: clamp(0.9rem, 3vw, 1.2rem); color: #c9622e; }
+        .tab.active { background: #ffb457; color: #231b2b; box-shadow: 0 -6px 12px #ffd58c; border-bottom: 4px solid #9b2c2c; transform: scale(1.02); }
+        .tab.disabled { opacity: 0.5; pointer-events: none; background: #bdbdbd; color: #4a4a4a; }
+        
+        /* panel responsive */
+        .panel { padding: clamp(12px, 4vw, 30px); background: #faf9ff; }
+        .tab-content { display: none; animation: fadePop 0.25s; }
+        .tab-content.active-content { display: block; }
+        @keyframes fadePop { from { opacity: 0.2; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* grid responsive */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 20px; }
+        
+        /* card responsive */
+        .card { background: #ffffffdb; backdrop-filter: blur(4px); border-radius: 28px; padding: clamp(16px, 4vw, 26px); border: 3px solid #ffc586; box-shadow: 15px 18px 25px -10px #ab7c5e4d; }
+        .card-title { font-size: clamp(1.2rem, 5vw, 1.6rem); font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #351c4d; background: #ffeac1; padding: 8px 20px; border-radius: 50px; width: fit-content; border: 2px solid #f0984a; flex-wrap: wrap; }
+        
+        /* form responsive */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #b3415c; font-size: clamp(0.85rem, 3vw, 0.95rem); }
+        .form-control { width: 100%; padding: 12px 16px; border: 3px solid #f6c5a0; border-radius: 30px; font-size: clamp(0.9rem, 3vw, 1rem); background: #fffcf5; transition: 0.2s; }
+        
+        /* button responsive */
+        .btn { background: white; border: 3px solid #fa9e73; padding: 10px 20px; border-radius: 50px; font-weight: 700; cursor: pointer; transition: 0.15s; font-size: clamp(0.85rem, 3vw, 1rem); display: inline-flex; align-items: center; gap: 8px; color: #3a1f2f; white-space: nowrap; }
+        .btn-primary { background: #4d2c6b; border-color: #aa6eca; color: white; }
+        .btn-warning { background: #f89d4b; border-color: #ce6d1f; color: #221c21; }
+        .btn-success { background: #309c6b; border-color: #1b6d46; color: white; }
+        .btn-danger { background: #da516b; border-color: #961d38; color: white; }
+        .btn-sm { padding: 6px 16px; font-size: clamp(0.8rem, 2.5vw, 0.9rem); }
+        
+        /* badge responsive */
+        .badge { background: #ffdcaa; padding: 4px 18px; border-radius: 50px; font-size: clamp(1rem, 4vw, 1.3rem); font-weight: 700; border: 2px solid #f0984a; white-space: nowrap; }
+        
+        /* table responsive */
+        .table-responsive { overflow-x: auto; border-radius: 24px; background: #fcead8; padding: 6px; border: 3px solid #edb284; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { background: #7158a3; color: white; padding: 14px 8px; font-weight: 600; font-size: clamp(0.85rem, 2.5vw, 1rem); }
+        td { padding: 12px 8px; border-bottom: 2px solid #f5cdb3; background: #fffefc; font-size: clamp(0.85rem, 2.5vw, 0.95rem); }
+        
+        /* pekerja checkbox responsive */
+        #pekerjaCheckboxContainer { display: flex; gap: 10px; flex-wrap: wrap; }
+        #pekerjaCheckboxContainer label { background: #f7cba5; padding: 8px 16px; border-radius: 50px; border: 2px solid #cf7336; font-size: clamp(0.85rem, 2.5vw, 0.95rem); display: inline-flex; align-items: center; gap: 5px; }
+        
+        /* list group responsive */
+        .list-group-item { background: #fef0e0; border-radius: 40px; padding: 10px 18px; margin: 8px 0; border: 2px solid #eaa875; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: clamp(0.85rem, 2.5vw, 1rem); }
+        .service-item { background: #e3f0da; border-radius: 40px; padding: 8px 18px; margin: 5px 0; display: flex; justify-content: space-between; border: 2px solid #5f9e6b; flex-wrap: wrap; gap: 10px; }
+        
+        /* layanan terpilih responsive */
+        #daftarLayananTerpilih li { display: flex; justify-content: space-between; background: white; border-radius: 60px; margin-bottom: 10px; padding: 8px 16px; font-size: clamp(0.85rem, 2.5vw, 1rem); flex-wrap: wrap; gap: 8px; }
+        
+        /* preview struk responsive */
+        #previewStruk { font-size: clamp(0.8rem, 2.5vw, 1rem); overflow-x: auto; }
+        
+        /* form pengaturan responsive */
+        #tab-pengaturan .form-control { margin-bottom: 12px; }
+        
+        /* tombol group responsive */
+        .flex-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
+        
+        /* print tetap sama */
+        @media print { .no-print, .tab-nav, .header, .btn, .card-title i { display: none; } body { background: white; } .app { border: none; } }
+    </style>
+</head>
+<body>
+<div class="app" id="app">
+    <div class="header">
+        <h1><i class="fas fa-spray-can-sparkles"></i> EBS Car Wash</h1>
+        <div class="user-switch">
+            <button id="userKasirBtn" class="active"><i class="fas fa-cash-register"></i> Kasir</button>
+            <button id="userAdminBtn"><i class="fas fa-user-tie"></i> Admin</button>
+        </div>
+    </div>
+
+    <div class="tab-nav" id="tabNav">
+        <button class="tab active" data-tab="transaksi"><i class="fas fa-receipt"></i> Transaksi</button>
+        <button class="tab" data-tab="dataPelanggan"><i class="fas fa-address-card"></i> Pelanggan</button>
+        <button class="tab" data-tab="pekerjaKomisi"><i class="fas fa-users-gear"></i> Pekerja & Komisi</button>
+        <button class="tab" data-tab="laporanHarian"><i class="fas fa-sun"></i> Laporan Harian</button>
+        <button class="tab" data-tab="laporanBulanan"><i class="fas fa-moon"></i> Laporan Bulanan</button>
+        <button class="tab" data-tab="grafik"><i class="fas fa-chart-pie"></i> Grafik</button>
+        <button class="tab" data-tab="pengeluaran"><i class="fas fa-arrow-down"></i> Pengeluaran</button>
+        <button class="tab" data-tab="bukuKas"><i class="fas fa-book"></i> Buku Kas</button>
+        <button class="tab" data-tab="pengaturan"><i class="fas fa-gears"></i> Pengaturan</button>
+    </div>
+
+    <div class="panel">
+        <!-- TRANSAKSI -->
+        <div id="tab-transaksi" class="tab-content active-content">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-pen-to-square"></i> Form Transaksi</div>
+                    <div class="form-group"><label>Nama Pelanggan</label><input type="text" id="namaPelanggan" class="form-control" placeholder="cth: Budi"></div>
+                    <div class="form-group"><label>No. Polisi</label><input type="text" id="noPolisi" class="form-control" placeholder="B 1234 CD"></div>
+                    <div class="form-group"><label>Merk/Type</label><input type="text" id="merkType" class="form-control" placeholder="Toyota Avanza"></div>
+                    <div class="form-group"><label>Pelanggan</label>
+                        <select id="tipePelanggan" class="form-control"><option value="reguler">Reguler</option><option value="member">Member (10x cuci gratis 1x)</option></select>
+                    </div>
+                    <div class="form-group"><label>Layanan (klik Tambah)</label>
+                        <div style="display: flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <select id="pilihLayanan" class="form-control" style="flex:1 1 200px;">
+                                <option value="50000">Cuci Luar - Rp50.000</option>
+                                <option value="75000">Cuci Dalam+Luars - Rp75.000</option>
+                                <option value="120000">Doorsmer + Wax - Rp120.000</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm" id="tambahLayananBtn"><i class="fas fa-plus-circle"></i> Tambah</button>
+                        </div>
+                        <ul id="daftarLayananTerpilih" style="margin-top:18px; list-style:none; background:#feeed5; border-radius:35px; padding:16px;"></ul>
+                    </div>
+                    <div class="form-group"><label>Pekerja (max 3)</label>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;" id="pekerjaCheckboxContainer"></div>
+                        <small id="pekerjaWarning" style="color:crimson; font-weight:600;"></small>
+                    </div>
+                    <div style="display:flex; gap:12px; flex-wrap:wrap; margin:20px 0 15px;">
+                        <button class="btn btn-warning" id="hitungTotalBayar"><i class="fas fa-calculator"></i> Total Bayar</button>
+                        <span class="badge" style="font-size:clamp(1.4rem,5vw,1.9rem); padding:8px 20px;" id="totalBayarDisplay">Rp0</span>
+                    </div>
+                    <div class="form-group"><label>Dibayar</label><input type="number" id="dibayar" class="form-control" value="0"></div>
+                    <div class="form-group"><label>Kembalian</label><input type="text" id="kembalian" class="form-control" readonly value="Rp0"></div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button class="btn btn-success" id="simpanTransaksi"><i class="fas fa-save"></i> Simpan</button>
+                        <button class="btn btn-warning" id="simpanCetakTransaksi"><i class="fas fa-print"></i> Simpan & Cetak</button>
+                        <button class="btn btn-outline" id="previewTransaksi"><i class="fas fa-eye"></i> Preview</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-receipt"></i> Preview Struk</div>
+                    <div id="previewStruk" style="background:#f2e3d0; border-radius:30px; padding:16px; font-family:'Courier New',monospace; white-space:pre-wrap; border:3px dashed #b95842; font-size:0.9rem;">— struk akan tampil —</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATA PELANGGAN -->
+        <div id="tab-dataPelanggan" class="tab-content">
+            <div class="card"><div class="card-title"><i class="fas fa-address-book"></i> Data Pelanggan</div>
+                <div class="table-responsive">
+                    <table><tr><th>Nama</th><th>No Pol</th><th>Member</th><th>Aksi</th></tr>
+                    <tr><td>Budi</td><td>B1234CD</td><td>Reguler</td><td><button class="btn btn-sm btn-danger">Hapus</button></td></tr>
+                    <tr><td>Siti</td><td>D5678EF</td><td>Member</td><td><button class="btn btn-sm btn-danger">Hapus</button></td></tr>
+                    </table>
+                </div>
+                <button class="btn btn-primary" style="margin-top:15px;"><i class="fas fa-user-plus"></i> Tambah Pelanggan</button>
+            </div>
+        </div>
+
+        <!-- PEKERJA & KOMISI -->
+        <div id="tab-pekerjaKomisi" class="tab-content">
+            <div class="card"><div class="card-title"><i class="fas fa-broom"></i> Pekerja & Komisi</div>
+                <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+                    <div style="flex:1 1 200px;"><label>Nama</label><input id="namaPekerjaInput" class="form-control" placeholder="nama"></div>
+                    <div style="flex:1 1 200px;"><label>No HP</label><input id="hpPekerjaInput" class="form-control" placeholder="08xxxx"></div>
+                    <button class="btn btn-success" id="tambahPekerjaBtn"><i class="fas fa-plus"></i> Tambah Pekerja</button>
+                </div>
+                <h4 style="margin:20px 0 15px;">📋 Daftar Pekerja</h4>
+                <div id="daftarPekerjaContainer"></div>
+                <h4 style="margin:20px 0 10px;">💰 Summary Komisi Hari Ini</h4>
+                <div style="background:#a9def0; border-radius:40px; padding:16px; font-size:clamp(1.1rem,4vw,1.5rem); border:3px solid #0f7595;">
+                    <p style="word-break:break-word;">35% Pekerja: Rp <span id="komisiPekerja">0</span> | 65% Owner: Rp <span id="komisiOwner">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAPORAN HARIAN -->
+        <div id="tab-laporanHarian" class="tab-content">
+            <div class="card"><div class="card-title"><i class="fas fa-calendar-day"></i> Laporan Harian</div>
+                <div id="laporanHarianDetail" style="white-space:pre-wrap; word-break:break-word; background:#f3efe2; padding:15px; border-radius:20px; margin-bottom:15px;">Memuat...</div>
+                <button class="btn btn-warning" id="printLaporanHarian"><i class="fas fa-print"></i> Print Laporan</button>
+            </div>
+        </div>
+
+        <!-- LAPORAN BULANAN -->
+        <div id="tab-laporanBulanan" class="tab-content">
+            <div class="card"><div class="card-title"><i class="fas fa-calendar-alt"></i> Laporan Bulanan</div>
+                <div id="laporanBulananDetail" style="white-space:pre-wrap; word-break:break-word; background:#f3efe2; padding:15px; border-radius:20px; margin-bottom:15px;">Memuat ...</div>
+                <button class="btn btn-warning" id="printLaporanBulanan"><i class="fas fa-print"></i> Print</button>
+            </div>
+        </div>
+
+        <!-- GRAFIK -->
+        <div id="tab-grafik" class="tab-content">
+            <div class="card"><div class="card-title"><i class="fas fa-chart-line"></i> Grafik</div>
+                <div style="max-width:100%; overflow-x:auto;">
+                    <canvas id="chartDaily" style="max-height:200px; margin-bottom:30px; min-width:300px;"></canvas>
+                    <canvas id="chartMonthly" style="max-height:200px; min-width:300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- PENGELUARAN -->
+        <div id="tab-pengeluaran" class="tab-content">
+            <div class="card"><div class="card-title"><i class="fas fa-wallet"></i> Pengeluaran</div>
+                <p>Form pencatatan pengeluaran (admin) :</p>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input class="form-control" style="flex:2;" placeholder="Uraian">
+                    <input class="form-control" style="flex:1;" type="number" placeholder="Jumlah">
+                    <button class="btn btn-primary">Tambah</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUKU KAS -->
+        <div id="tab-bukuKas" class="tab-content">
+            <div class="card"><div class="card-title"><i class="fas fa-book-open"></i> Buku Kas</div>
+                <div class="table-responsive">
+                    <table><tr><th>Tanggal</th><th>Masuk</th><th>Keluar</th><th>Saldo</th></tr>
+                    <tr><td>24-03-2025</td><td>500.000</td><td>50.000</td><td>450.000</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PENGATURAN -->
+        <div id="tab-pengaturan" class="tab-content">
+            <div class="card"><div class="card-title"><i class="fas fa-sliders-h"></i> Pengaturan</div>
+                <h4>🏢 Profil Usaha</h4>
+                <input class="form-control" id="namaUsaha" value="EBS Car Wash">
+                <input class="form-control" id="sloganUsaha" value="Bersih Wangi">
+                <input class="form-control" id="alamatUsaha" value="Jl. Melati No.7">
+                <input class="form-control" id="hpUsaha" value="0812345">
+                <button class="btn btn-primary" id="simpanProfil">Simpan Profil</button>
+                
+                <h4 style="margin-top:20px;">🔐 Ubah Password</h4>
+                <input type="password" id="passLama" class="form-control" placeholder="Password lama">
+                <input type="password" id="passBaru" class="form-control" placeholder="Password baru">
+                <button class="btn btn-warning" id="ubahPasswordBtn"><i class="fas fa-key"></i> Ganti Password</button>
+                <hr>
+                
+                <h4>📋 Layanan Doorsmeer</h4>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <input id="namaLayananDoor" class="form-control" style="flex:2 1 200px;" placeholder="Nama layanan (cth: Wax)">
+                    <input id="hargaLayananDoor" type="number" class="form-control" style="flex:1 1 150px;" placeholder="Harga">
+                    <button class="btn btn-success" id="tambahLayananDoorBtn"><i class="fas fa-plus"></i> Tambah</button>
+                </div>
+                <div id="daftarLayananDoor" style="margin-top:20px;"></div>
+                <hr>
+                
+                <div style="margin:20px 0; display:flex; gap:12px; flex-wrap:wrap;">
+                    <button class="btn btn-primary" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Export Excel</button>
+                    <button class="btn btn-danger" id="hapusAllData"><i class="fas fa-trash-can"></i> Hapus Semua Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        let currentUser = 'kasir';
+        let transaksiList = JSON.parse(localStorage.getItem('ebsTransaksi')) || [];
+        let layananTerpilih = [];
+        let pekerjaList = JSON.parse(localStorage.getItem('ebsPekerja')) || [{id:1, nama:'Andi', hp:'081111'},{id:2, nama:'Budi', hp:'082222'},{id:3, nama:'Cici', hp:'083333'}];
+        let selectedPekerja = [];
+        let komisiHarian = 0;
+        
+        // Data layanan doorsmeer
+        let layananDoorList = JSON.parse(localStorage.getItem('ebsLayananDoor')) || [
+            { nama: 'Cuci Luar', harga: 50000 },
+            { nama: 'Cuci Dalam+Luars', harga: 75000 },
+            { nama: 'Doorsmer + Wax', harga: 120000 }
+        ];
+
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const kasirBtn = document.getElementById('userKasirBtn');
+        const adminBtn = document.getElementById('userAdminBtn');
+
+        function simpanPekerja() { localStorage.setItem('ebsPekerja', JSON.stringify(pekerjaList)); renderPekerjaCheckbox(); renderDaftarPekerja(); }
+        function simpanTransaksi() { localStorage.setItem('ebsTransaksi', JSON.stringify(transaksiList)); }
+        function simpanLayananDoor() { localStorage.setItem('ebsLayananDoor', JSON.stringify(layananDoorList)); renderLayananDoorSelect(); renderDaftarLayananDoor(); }
+
+        function renderLayananDoorSelect() {
+            let select = document.getElementById('pilihLayanan');
+            if (!select) return;
+            select.innerHTML = '';
+            layananDoorList.forEach(l => {
+                let option = document.createElement('option');
+                option.value = l.harga;
+                option.text = `${l.nama} - Rp${l.harga}`;
+                select.appendChild(option);
+            });
+        }
+
+        function renderDaftarLayananDoor() {
+            let container = document.getElementById('daftarLayananDoor');
+            if (!container) return;
+            container.innerHTML = '';
+            layananDoorList.forEach((l, idx) => {
+                let div = document.createElement('div');
+                div.className = 'service-item';
+                div.innerHTML = `<span>${l.nama} - Rp${l.harga}</span> <i class="fas fa-trash" style="color:crimson; cursor:pointer;" data-index="${idx}"></i>`;
+                container.appendChild(div);
+            });
+            document.querySelectorAll('#daftarLayananDoor .fa-trash').forEach(icon => {
+                icon.addEventListener('click', function(e) {
+                    let index = e.target.dataset.index;
+                    layananDoorList.splice(index, 1);
+                    simpanLayananDoor();
+                });
+            });
+        }
+
+        document.getElementById('tambahLayananDoorBtn')?.addEventListener('click', function() {
+            let nama = document.getElementById('namaLayananDoor').value.trim();
+            let harga = parseInt(document.getElementById('hargaLayananDoor').value);
+            if (nama && harga > 0) {
+                layananDoorList.push({ nama, harga });
+                simpanLayananDoor();
+                document.getElementById('namaLayananDoor').value = '';
+                document.getElementById('hargaLayananDoor').value = '';
+            } else {
+                alert('Isi nama layanan dan harga dengan benar');
+            }
+        });
+
+        function renderPekerjaCheckbox() {
+            let container = document.getElementById('pekerjaCheckboxContainer');
+            if(!container) return;
+            let html = '';
+            pekerjaList.forEach(p => {
+                html += `<label style="background:#f7cba5; padding:8px 16px; border-radius:50px; border:2px solid #cf7336;"><input type="checkbox" value="${p.id}" class="pekerjaCheck"> ${p.nama}</label>`;
+            });
+            container.innerHTML = html;
+            attachPekerjaListener();
+        }
+
+        function attachPekerjaListener() {
+            document.querySelectorAll('.pekerjaCheck').forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    let checked = document.querySelectorAll('.pekerjaCheck:checked').length;
+                    if (checked > 3) { e.target.checked = false; document.getElementById('pekerjaWarning').innerText = 'Maksimal 3 pekerja!'; }
+                    else { document.getElementById('pekerjaWarning').innerText = ''; }
+                    updateSelectedPekerja();
+                });
+            });
+        }
+
+        function updateSelectedPekerja() {
+            selectedPekerja = [];
+            document.querySelectorAll('.pekerjaCheck:checked').forEach(cb => selectedPekerja.push(parseInt(cb.value)));
+        }
+
+        function renderDaftarPekerja() {
+            let container = document.getElementById('daftarPekerjaContainer');
+            if (!container) return;
+            let items = '';
+            pekerjaList.forEach(p => {
+                items += `<div class="list-group-item"><span><i class="fas fa-user"></i> ${p.nama} (${p.hp})</span> <button class="btn btn-sm btn-danger hapusPekerja" data-id="${p.id}"><i class="fas fa-trash"></i> Hapus</button></div>`;
+            });
+            container.innerHTML = items;
+            document.querySelectorAll('.hapusPekerja').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    let id = parseInt(e.target.closest('button').dataset.id);
+                    pekerjaList = pekerjaList.filter(p => p.id !== id);
+                    simpanPekerja();
+                });
+            });
+        }
+
+        document.getElementById('tambahPekerjaBtn')?.addEventListener('click', ()=>{
+            let nama = document.getElementById('namaPekerjaInput').value.trim();
+            let hp = document.getElementById('hpPekerjaInput').value.trim();
+            if (nama && hp) {
+                pekerjaList.push({id: Date.now(), nama, hp});
+                simpanPekerja();
+                document.getElementById('namaPekerjaInput').value = ''; document.getElementById('hpPekerjaInput').value = '';
+            } else alert('Isi nama & no hp');
+        });
+
+        document.getElementById('tambahLayananBtn')?.addEventListener('click', ()=>{
+            let select = document.getElementById('pilihLayanan');
+            let text = select.selectedOptions[0].text;
+            let harga = parseInt(select.value);
+            let nama = text.split(' - Rp')[0];
+            layananTerpilih.push({nama, harga});
+            renderLayananList();
+        });
+
+        function renderLayananList() {
+            let ul = document.getElementById('daftarLayananTerpilih');
+            if (layananTerpilih.length===0) ul.innerHTML = '<li style="background:white; border-radius:60px; padding:12px;">Belum ada layanan</li>';
+            else {
+                ul.innerHTML = layananTerpilih.map((l,idx) => `<li style="display:flex; justify-content:space-between; background:white; border-radius:60px; margin-bottom:10px; padding:8px 16px;">${l.nama} Rp${l.harga} <i class="fas fa-trash" style="color:crimson; cursor:pointer;" data-index="${idx}"></i></li>`).join('');
+                document.querySelectorAll('#daftarLayananTerpilih .fa-trash').forEach(icon => {
+                    icon.addEventListener('click', (e) => {
+                        layananTerpilih.splice(e.target.dataset.index,1);
+                        renderLayananList();
+                    });
+                });
+            }
+        }
+
+        document.getElementById('hitungTotalBayar')?.addEventListener('click', ()=>{
+            let total = layananTerpilih.reduce((s,l)=> s + l.harga, 0);
+            document.getElementById('totalBayarDisplay').innerText = `Rp${total}`;
+        });
+
+        document.getElementById('dibayar')?.addEventListener('input', ()=>{
+            let total = layananTerpilih.reduce((s,l)=> s + l.harga, 0);
+            let bayar = parseInt(document.getElementById('dibayar').value) || 0;
+            document.getElementById('kembalian').value = `Rp${bayar - total}`;
+        });
+
+        function buatStruk() {
+            return `==== EBS CAR WASH ====\nPelanggan: ${document.getElementById('namaPelanggan').value}\nNo Pol: ${document.getElementById('noPolisi').value}\nLayanan: ${layananTerpilih.map(l=>l.nama).join(', ')}\nTotal: Rp${layananTerpilih.reduce((s,l)=>s+l.harga,0)}\nBayar: Rp${document.getElementById('dibayar').value}\nTerima kasih`;
+        }
+
+        document.getElementById('previewTransaksi')?.addEventListener('click', ()=>{
+            document.getElementById('previewStruk').innerText = buatStruk();
+        });
+
+        function simpanTransaksiKeMemory() {
+            let total = layananTerpilih.reduce((s,l)=> s + l.harga, 0);
+            let trans = { id: Date.now(), pelanggan: document.getElementById('namaPelanggan').value, nopol: document.getElementById('noPolisi').value, layanan: [...layananTerpilih], total, dibayar: parseInt(document.getElementById('dibayar').value)||0, pekerja: selectedPekerja, tanggal: new Date().toLocaleDateString() };
+            transaksiList.push(trans);
+            simpanTransaksi();
+            komisiHarian = transaksiList.filter(t => new Date(t.tanggal).toDateString() === new Date().toDateString()).reduce((sum, t) => sum + t.total,0);
+            document.getElementById('komisiPekerja').innerText = Math.floor(komisiHarian * 0.35);
+            document.getElementById('komisiOwner').innerText = Math.floor(komisiHarian * 0.65);
+            renderLaporanHarian(); renderLaporanBulanan();
+        }
+
+        document.getElementById('simpanTransaksi')?.addEventListener('click', ()=>{ simpanTransaksiKeMemory(); alert('Tersimpan'); });
+        document.getElementById('simpanCetakTransaksi')?.addEventListener('click', ()=>{
+            simpanTransaksiKeMemory();
+            let printW = window.open('','_blank');
+            printW.document.write('<style>body{font-family:monospace;width:58mm;}</style><pre>'+buatStruk()+'</pre>');
+            printW.print();
+        });
+
+        function renderLaporanHarian() {
+            let today = new Date().toLocaleDateString();
+            let harian = transaksiList.filter(t => t.tanggal === today);
+            let totalOmzet = harian.reduce((sum,t)=>sum + t.total,0);
+            let countTrans = harian.length;
+            let detail = `📅 Tanggal: ${today}\nTotal Transaksi: ${countTrans}\nOmzet: Rp${totalOmzet}\nRincian: \n`;
+            harian.forEach((t,i)=> detail += `${i+1}. ${t.pelanggan} - Rp${t.total}\n`);
+            document.getElementById('laporanHarianDetail').innerText = detail;
+        }
+        function renderLaporanBulanan() {
+            let bulan = new Date().getMonth();
+            let bulanan = transaksiList.filter(t => new Date(t.tanggal).getMonth() === bulan);
+            let total = bulanan.reduce((sum,t)=>sum + t.total,0);
+            document.getElementById('laporanBulananDetail').innerText = `Bulan ${new Date().toLocaleString('id',{month:'long'})} | Transaksi: ${bulanan.length} | Omzet: Rp${total}`;
+        }
+
+        document.getElementById('printLaporanHarian')?.addEventListener('click', ()=>{ window.print(); });
+        document.getElementById('printLaporanBulanan')?.addEventListener('click', ()=>{ window.print(); });
+
+        document.getElementById('ubahPasswordBtn')?.addEventListener('click', ()=>{
+            let lama = document.getElementById('passLama').value;
+            let baru = document.getElementById('passBaru').value;
+            if (lama === 'admin' && baru.length > 0) { alert('Password berhasil diubah (simulasi)'); } else alert('Password lama salah (gunakan "admin")');
+        });
+
+        document.getElementById('exportExcelBtn')?.addEventListener('click', ()=>{
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.json_to_sheet(transaksiList);
+            XLSX.utils.book_append_sheet(wb, ws, "Transaksi");
+            XLSX.writeFile(wb, "ebs_data.xlsx");
+        });
+
+        document.getElementById('hapusAllData')?.addEventListener('click', ()=>{
+            if(confirm('Hapus semua data transaksi & pekerja?')) {
+                transaksiList = []; pekerjaList = []; layananDoorList = []; localStorage.clear(); alert('Data direset'); renderDaftarPekerja(); renderPekerjaCheckbox(); renderLayananDoorSelect(); renderDaftarLayananDoor(); }
+        });
+
+        function renderCharts() {
+            new Chart(document.getElementById('chartDaily'), { type: 'line', data: { labels: ['Sen','Sel','Rab','Kam','Jum','Sab'], datasets: [{ label: 'Omzet Harian', data: [120,150,200,180,250,300], backgroundColor:'#f7a35c' }] } });
+            new Chart(document.getElementById('chartMonthly'), { type: 'bar', data: { labels: ['Jan','Feb','Mar'], datasets: [{ label: 'Bulanan', data: [3500,4200,5100] }] } });
+        }
+
+        function setUserRole(role) {
+            currentUser = role;
+            kasirBtn.classList.toggle('active', role==='kasir');
+            adminBtn.classList.toggle('active', role==='admin');
+            tabs.forEach(tab => { tab.classList.toggle('disabled', role==='kasir' && tab.dataset.tab !== 'transaksi'); });
+            if (role==='kasir') openTab('transaksi');
+        }
+
+        function openTab(tabId) {
+            tabContents.forEach(c => c.classList.remove('active-content'));
+            document.getElementById('tab-'+tabId)?.classList.add('active-content');
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabId}"]`)?.classList.add('active');
+            if (tabId === 'grafik') renderCharts();
+            if (tabId === 'laporanHarian') renderLaporanHarian();
+            if (tabId === 'laporanBulanan') renderLaporanBulanan();
+        }
+
+        tabs.forEach(tab => tab.addEventListener('click', (e) => { if (!tab.classList.contains('disabled')) openTab(tab.dataset.tab); }));
+        kasirBtn.addEventListener('click', ()=> setUserRole('kasir'));
+        adminBtn.addEventListener('click', ()=> setUserRole('admin'));
+
+        // init
+        setUserRole('kasir');
+        renderPekerjaCheckbox();
+        renderDaftarPekerja();
+        renderLayananList();
+        renderLaporanHarian();
+        renderLaporanBulanan();
+        renderLayananDoorSelect();
+        renderDaftarLayananDoor();
+    })();
+</script>
+</body>
+</html>
